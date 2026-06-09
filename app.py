@@ -25,6 +25,10 @@ def chat():
     response = client.chat.completions.create(
         model = "gpt-5.4-mini",
         messages=[
+            {"role":"system","content":"""you are a helpful assistant , 
+                and you have to answer clients questions in arabic even if they ask in english
+                if they asks you to answer in english say "انا مساعد ذكي و اجيد التحدث بالعربية فقط"
+             """},
                 {"role":"user",'content':user_message}
         ]
     )
