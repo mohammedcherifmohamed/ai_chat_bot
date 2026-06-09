@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>ChatBot</title>
+	<style>
+		:root{--bg:#0f1724;--card:#0b1220;--accent:#7c3aed;--muted:#9aa4b2;--bubble:#111827}
+		*{box-sizing:border-box}
+		body{margin:0;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(135deg,#071427 0%,#031024 100%);color:#e6eef8;min-height:100vh;display:flex;align-items:center;justify-content:center}
+		.container{width:100%;max-width:920px;padding:32px}
+		.chat-card{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.04);border-radius:16px;padding:20px;box-shadow:0 8px 30px rgba(2,6,23,0.6)}
+		.header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+		.logo{width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#06b6d4);display:flex;align-items:center;justify-content:center;font-weight:700;color:white}
+		.title{font-size:18px;font-weight:600}
+		.subtitle{font-size:12px;color:var(--muted)}
+		.chat-window{height:420px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);border-radius:12px;padding:18px;overflow:auto;border:1px solid rgba(255,255,255,0.02)}
+		.messages{display:flex;flex-direction:column;gap:12px}
+		.msg{max-width:78%;padding:12px 14px;border-radius:12px;line-height:1.4}
+		.user{align-self:flex-end;background:linear-gradient(135deg,#1f2937,#111827);border-radius:14px 14px 6px 14px}
+		.bot{align-self:flex-start;background:linear-gradient(135deg,rgba(124,58,237,0.12),rgba(6,182,212,0.06));color:#dfe7ff;border-radius:14px 14px 14px 6px}
+		.input-area{display:flex;gap:10px;margin-top:14px}
+		.input{flex:1;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);background:rgba(255,255,255,0.02);color:inherit}
+		.send{background:var(--accent);border:none;color:white;padding:0 18px;border-radius:12px;cursor:pointer}
+		.footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px;color:var(--muted);font-size:13px}
+		/* nice scrollbar */
+		.chat-window::-webkit-scrollbar{width:10px}
+		.chat-window::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.04);border-radius:10px}
+		@media (max-width:520px){.container{padding:16px}.chat-window{height:360px}}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="chat-card">
+			<div class="header">
+				<div class="logo">CB</div>
+				<div>
+					<div class="title">ChatBot</div>
+					<div class="subtitle">A friendly assistant — ask anything</div>
+				</div>
+			</div>
+
+			<div class="chat-window" id="chatWindow">
+				<div class="messages" id="messages">
+					<div class="msg bot">Hello! I'm here to help. Try typing a question below.</div>
+				</div>
+			</div>
+
+			<div class="input-area">
+				<input id="input" class="input" placeholder="Type a message..." />
+				<button id="send" class="send">Send</button>
+			</div>
+
+			<div class="footer">
+				<div>Powered by a simple UI</div>
+				<div id="status">Online</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		const input = document.getElementById('input');
+		const send = document.getElementById('send');
+		const messages = document.getElementById('messages');
+		const chatWindow = document.getElementById('chatWindow');
+
+		function append(text, cls){
+			const d = document.createElement('div');
+			d.className = 'msg ' + cls;
+			d.textContent = text;
+			messages.appendChild(d);
+			chatWindow.scrollTop = chatWindow.scrollHeight;
+		}
+
+		send.addEventListener('click', ()=>{
+			const v = input.value.trim();
+			if(!v) return;
+			append(v,'user');
+			input.value='';
+			// simple canned reply for demo
+			// setTimeout(()=>append('Thanks for your message: "'+v+'" — this is a demo response.', 'bot'), 700);
+            // feetch response from openAi API
+            fetch('/chat',{
+                method:'POST',
+                headers:{'content-type':'application/json'},
+                body:JSON.stringify({message:v})
+            })
+            .then(res=>res.json())
+            .then(data=>{
+                if(data.reply) append(data.reply,'bot');
+                else append('Sorry, no response from the server.','bot');
+            })
+            .catch(err=>{
+                console.error(err);
+                append('Error communicating with the server.','bot');
+       
+            });
+        });
+
+		input.addEventListener('keydown', (e)=>{if(e.key==='Enter') send.click();});
+	</script>
+</body>
+</html>
